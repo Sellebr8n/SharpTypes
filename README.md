@@ -1,3 +1,5 @@
+Disclamer, these docs are made by chatGpt
+
 # SharpTypes
 
 **SharpTypes** is a C# library designed to automatically generate TypeScript types from C# DTOs using reflection. It helps maintain consistency between your C# models and TypeScript types, making it especially useful for **monorepo** setups or projects where backend and frontend need to share data models.
