@@ -26,7 +26,7 @@ public class TypeScriptGenerator
             if (!dtoType.GetProperties().Any()) continue;  // Skip empty DTOs
 
             var attribute = GetExportTsAttribute(dtoType);
-            var typeName = attribute?.TypeName ?? dtoType.Name;
+            var typeName = attribute?.Name ?? dtoType.Name;
 
             var folderAttribute = dtoType.GetCustomAttribute<ExportToFolderAttribute>();
             var outputPath = outputRootPath;
@@ -68,20 +68,7 @@ public class TypeScriptGenerator
         var parts = dtoNamespace.Split('.');
         return parts.Length > 1 ? parts.Last() : parts[0];
     }
-
-    // Generates an index.ts file that re-exports all types, grouped by folder
-    // private void GenerateIndexFile(string outputRootPath, Dictionary<string, List<string>> folderMap)
-    // {
-    //     var indexFilePath = Path.Combine(outputRootPath, "index.ts");
-    //     using var writer = new StreamWriter(indexFilePath);
-    //
-    //     foreach (var folder in folderMap)
-    //     {
-    //         var relativeFolderPath = Path.GetRelativePath(outputRootPath, Path.Combine(outputRootPath, folder.Key))
-    //             .Replace("\\", "/");
-    //         writer.WriteLine($"export * as {folder.Key} from './{relativeFolderPath}';");
-    //     }
-    // }
+    
     private void GenerateIndexFile(string outputRootPath, Dictionary<string, List<string>> folderMap)
     {
         var indexFilePath = Path.Combine(outputRootPath, "index.ts");
@@ -121,35 +108,7 @@ public class TypeScriptGenerator
 
         return null;
     }
-
-    // Converts C# type to TypeScript type
-    // private string ConvertToTypeScript(Type type, string typeName)
-    // {
-    //     var typeScriptLines = new List<string>
-    //     {
-    //         $"export interface {typeName} {{"
-    //     };
-    //
-    //     // Handle inheritance - include base class properties
-    //     var currentType = type;
-    //     while (currentType != null && currentType != typeof(object))
-    //     {
-    //         var properties =
-    //             currentType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-    //         foreach (var prop in properties)
-    //         {
-    //             var tsType = ConvertTypeToTypeScript(prop.PropertyType);
-    //             var optionalFlag = IsOptionalProperty(prop) ? "?" : ""; // Automatically handle optional
-    //             typeScriptLines.Add($"    {prop.Name}{optionalFlag}: {tsType};");
-    //         }
-    //
-    //         currentType = currentType.BaseType;
-    //     }
-    //
-    //     typeScriptLines.Add("}");
-    //
-    //     return string.Join(Environment.NewLine, typeScriptLines);
-    // }
+    
     private string ConvertToTypeScript(Type type, string typeName)
     {
         var typeScriptLines = new List<string>
@@ -166,6 +125,9 @@ public class TypeScriptGenerator
             {
                 var tsType = ConvertTypeToTypeScript(prop.PropertyType);
                 var optionalFlag = IsOptionalProperty(prop) ? "?" : "";  // Automatically handle optional
+                
+                var propertyAttribute = GetTsPropertyAttribute(prop);
+                var propertyName = propertyAttribute?.Name ?? CamelCaseConverter.ToCamelCase(prop.Name);
                 typeScriptLines.Add($"    {prop.Name}{optionalFlag}: {tsType};");
             }
 
@@ -178,6 +140,11 @@ public class TypeScriptGenerator
         return string.Join(Environment.NewLine, typeScriptLines);
     }
 
+    private TsPropertyAttribute? GetTsPropertyAttribute(PropertyInfo property)
+    {
+        return property.GetCustomAttribute<TsPropertyAttribute>();
+    }
+    
     // Automatically detect if a property is optional (nullable or marked as optional)
     private bool IsOptionalProperty(PropertyInfo propertyInfo)
     {
