@@ -128,7 +128,7 @@ public class TypeScriptGenerator
                 
                 var propertyAttribute = GetTsPropertyAttribute(prop);
                 var propertyName = propertyAttribute?.Name ?? CamelCaseConverter.ToCamelCase(prop.Name);
-                typeScriptLines.Add($"    {prop.Name}{optionalFlag}: {tsType};");
+                typeScriptLines.Add($"    {propertyName}{optionalFlag}: {tsType};");
             }
 
             currentType = currentType.BaseType;
